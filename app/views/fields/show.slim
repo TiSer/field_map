@@ -1,0 +1,18 @@
+p = link_to "Back", root_path
+br
+p = link_to "Edit", edit_field_path(@field)
+
+
+p = "Name: #{@field.name}"
+p = "Area: #{@field.area}"
+
+#field-map
+
+javascript:
+  var fieldMap = L.map('field-map');
+  L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 18}).addTo(fieldMap);
+
+  var shape = #{raw @field_data};
+  var field = L.geoJSON(shape);
+  field.addTo(fieldMap);
+  fieldMap.fitBounds(field.getBounds());

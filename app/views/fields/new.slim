@@ -1,0 +1,67 @@
+p = link_to "Back", root_path
+br
+
+#map
+
+javascript:
+  var map = L.map('map').setView([0,0],2);
+
+  L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'Data © <a href="http://osm.org/copyright">OpenStreetMap</a>',
+      maxZoom: 18
+    }).addTo(map);
+
+  // Initialise the FeatureGroup to store editable layers
+  var editableLayers = new L.FeatureGroup();
+  map.addLayer(editableLayers);
+
+  var drawPluginOptions = {
+    position: 'topright',
+    draw: {
+      polygon: {
+        allowIntersection: false,
+        drawError: {
+          color: '#e1e100',
+          message: '<strong>Oh snap!<strong> you can\'t draw that!'
+        },
+        shapeOptions: {
+          color: '#97009c'
+        }
+      },
+      polyline: false,
+      circle: false,
+      rectangle: false,
+      marker: false,
+      },
+    edit: {
+      featureGroup: editableLayers,
+      remove: false
+    }
+  };
+
+  var drawControl = new L.Control.Draw(drawPluginOptions);
+  map.addControl(drawControl);
+
+  var editableLayers = new L.FeatureGroup();
+  map.addLayer(editableLayers);
+
+  map.on('draw:created', function(e) {
+    var type  = e.layerType,
+        layer = e.layer;
+
+    editableLayers.addLayer(layer);
+    var area = LGeo.area(layer);
+    var shape = layer.toGeoJSON();
+    var shapeForDb = JSON.stringify(shape);
+    alert("field saved");
+
+    $.ajax({
+      url: "/fields",
+      type: 'post',
+      data: { 
+        shape: shapeForDb,
+        area: area
+      }
+    });
+  });
