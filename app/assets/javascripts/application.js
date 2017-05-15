@@ -13,4 +13,7 @@
 //= require jquery
 //= require jquery_ujs
 //= require turbolinks
+//= require leaflet.js
+//= require leaflet-geodesy.js
+//= require leaflet.draw.js
 //= require_tree .
