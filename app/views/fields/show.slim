@@ -1,6 +1,8 @@
 p = link_to "Back", root_path
 br
-p = link_to "Edit", edit_field_path(@field)
+= link_to "Edit", edit_field_path(@field)
+br
+= link_to "Destroy", field_path(@field), method: :delete
 
 
 p = "Name: #{@field.name}"

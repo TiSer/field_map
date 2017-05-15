@@ -1,47 +1,53 @@
 class FieldsController < ApplicationController
+  before_action :prepare_field, only: [:show, :edit, :update, :destroy]
+
   def index
     @fields = Field.all
-    @fields_data = Field.pluck(:shape).map {|s| RGeo::GeoJSON.encode(s) }.to_json.html_safe
+    @fields_data = Field.get_shapes
   end
 
   def show
-    @field = Field.find params[:id]
-    @field_data = RGeo::GeoJSON.encode(@field.shape).to_json
+    @field_data = @field.shape_to_geojson
   end
 
   def new
   end
 
   def create
-    shape_geometry = JSON.parse(params[:shape])["geometry"]
-    shape = RGeo::GeoJSON.decode(shape_geometry, json_parser: :json)
-    sqlq = "SELECT ST_AsText(ST_Multi(ST_GeomFromText('#{shape.as_text}')));"
-    poly = ActiveRecord::Base.connection.exec_query(sqlq).rows.flatten.first
+    poly_field = Field.build_field(params[:shape])
     @field = Field.create(name: Time.now.strftime("%d-%m-%Y %H:%M"),
-                          shape: poly,
+                          shape: poly_field,
                           area: params[:area])
 
     head :no_content
   end
 
   def edit
-    @field = Field.find params[:id]
   end
 
   def update
-    @field = Field.find(params[:id])
-    @field_data = RGeo::GeoJSON.encode(@field.shape).to_json
+    @field_data = @field.shape_to_geojson
 
     if @field.update_attributes(field_params)
       flash[:notice] = "field updated"
-
       render :show
     else
       flash[:alert] = "oops"
     end
   end
 
+  def destroy
+    @field.destroy
+
+    flash[:notice] = "field destroyed"
+    redirect_to :root
+  end
+
   private
+    def prepare_field
+      @field = Field.find params[:id]
+    end
+
     def field_params
       params.require(:field).permit(:name, :shape)
     end
